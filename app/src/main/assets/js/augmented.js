@@ -18,8 +18,8 @@ var relicsScale = 0.002;//文物静态模型的大小
 
 var oneFingerGestureAllowed = false;//先禁止单指模式识别（存疑）
 
-var bucketScale = 0.0047;//木桶模型的大小
-var woodScale = 0.003;//木头模型的大小
+var bucketScale = 0.01;//木桶模型的大小
+var woodScale = 0.008;//木头模型的大小
 var meetScale = 0.003;//肉的模型大小
 
 var bucketPouringScale = 0.11;//倒水动画的大小
@@ -157,14 +157,14 @@ var World = {
                 z: bucketScale
             },
             translate: {
-                x: 0.827,
-                y: 0.509,
-                z: 0.107
+                x: 1.013,
+                y: 1.232,
+                z: 0.116
             },
             rotate: {
-                x:230,
-                y:90,
-                z:90
+                x:270,
+                y:0,
+                z:0
             },
 
             //移动
@@ -183,6 +183,7 @@ var World = {
             onPanEnded: function() {
                 previousTranslateValue.x = this.translate.x;
                 previousTranslateValue.z = this.translate.z;
+                //当移动到一个固定的区域时触发动画/其他函数
                 if((this.translate.x >=-0.97) && (this.translate.x <= 0) &&(this.translate.y >= 0.033)&&(this.translate.y<=0.696)){
                     World.meet.enabled = false;
                 }
@@ -202,14 +203,14 @@ var World = {
                 z: woodScale
             },
             translate: {
-                x: 0.813,
-                y: 0.236,
-                z: 0.092
+                x: 1.021,
+                y: 0.86,
+                z: 0
             },
             rotate: {
-                x:180,
-                y:-90,
-                z:-90
+                x:-45,
+                y:52,
+                z:0
             },
             //移动
             onPanBegan: function() {
@@ -234,7 +235,7 @@ var World = {
             onError: World.onError
         });
 
-        /*肉（可拖动）按键对应的模型*/
+        /* 肉（可拖动）按键对应的模型 */
         this.meet = new AR.Model("assets/augmented/meet.wt3",{
             scale: {
                 x: meetScale,
@@ -242,9 +243,9 @@ var World = {
                 z: meetScale
             },
             translate: {
-                x: 0.813,
-                y: -0.276,
-                z: 0.092
+                x: 1.052,
+                y: 0.135,
+                z: 0.06
             },
             rotate: {
                 x:180,
@@ -281,10 +282,31 @@ var World = {
         World.drawables.push(this.wood);//2
         World.drawables.push(this.meet);//3
 
+        /*创建小精灵的gif动画*/
+        // Gif中，每秒12帧，单个帧的大小为260*310，每一行为4帧，一共3行，即源图片大小为(260*4 = 1040)*(310*3 = 930)
+        this.imgElf = new AR.ImageResource("assets/icons/elf_1040.png", {
+            onError: World.onError
+        });
 
+        this.elf = new AR.AnimatedImageDrawable(this.imgElf, 0.75, 260, 310, {//height,frame_width,frame_height
+            translate: {
+               x: 0.877,
+               y: 2.106,
+               z: 0.141
+            },
+            rotates: {
+                x: 0,
+                y: 0,
+                z: 0
+            },
+//            onClick: { //点击以后触发的播放音频操作，目前报错说没有这个属性
+//
+//            }
+        });
 
-        // gif中，每秒12帧，单个帧的大小为260*310，每一行为4帧，一共3行，
-        // 即图片大小为(260*4 = 1040)*(310*3 = 930)
+        /* 每帧的播放时间为 84ms(5秒60帧)  参数-1 表示无限循环 */
+        this.elf.animate([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], 84, -1);
+        World.drawables.push(this.elf);//4
     },
 
     //对象识别成功时，设置drawables数组中所有的模型为可见
@@ -294,21 +316,21 @@ var World = {
         var title_text = document.title;//获取当前页面的标签
         if(title_text == "static"){//如果是静态文物界面则显示
             World.drawables[0].enabled = true;
-            World.setAugmentationsEnabled(1, World.drawables.length, false);
+            World.setAugmentationsEnabled(1, 3, false);
             World.appear(World.relicsAppearAnimation);//播放出现动画
         }else if(title_text == "dynamic"){
             /*设置按钮可见*/
             document.getElementById("water").style.visibility = "visible";
             document.getElementById("wood").style.visibility = "visible";
             document.getElementById("beef").style.visibility = "visible";
-            World.setAugmentationsEnabled(0, World.drawables.length, false);
+            World.setAugmentationsEnabled(0, 3, false);
         }
     },
 
     //对象丢失时将所有的模型设置为不可见
     //还需要设置页面跳转时使用不同的js，让当前的效果都消失
     objectLost: function objectLostFn() {
-        World.setAugmentationsEnabled(0, World.drawables.length, false);
+        World.setAugmentationsEnabled(0, 3, false);
     },
 
     //设置所有的增强模型为enabled的值
