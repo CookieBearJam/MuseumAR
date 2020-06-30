@@ -14,6 +14,24 @@ var previousRotationValue = {
     z:0
 };
 
+var previousBucketTranslateValue = {
+    x: 1.013,
+    y: 1.232,
+    z: 0.116
+};
+
+var previousWoodTranslateValue = {
+    x: 1.021,
+    y: 0.86,
+    z: 0
+};
+
+var previousMeetTranslateValue = {
+    x: 1.052,
+    y: 0.135,
+    z: 0.06
+};
+
 var relicsScale = 0.002;//文物静态模型的大小
 
 var oneFingerGestureAllowed = false;//先禁止单指模式识别（存疑）
@@ -168,21 +186,20 @@ var World = {
             },
 
             //移动
-            onPanBegan: function() {
-                oneFingerGestureAllowed=false;
+            onDragBegan: function() {
+                oneFingerGestureAllowed=true;
                 return true;
             },
-            onPanChanged: function(x,y) {
-                //有问题，把y轴都换成了z轴
+            onDragChanged: function(x,y,intersectionX, intersectionY) {
                 this.translate = {
-                    x:previousTranslateValue.x+x,
-                    z:previousTranslateValue.z-y
+                    x:previousBucketTranslateValue.x+x,
+                    y:previousBucketTranslateValue.y-y
                 }
                 return true;
             },
-            onPanEnded: function() {
-                previousTranslateValue.x = this.translate.x;
-                previousTranslateValue.z = this.translate.z;
+            onDragEnded: function() {
+                previousBucketTranslateValue.x = this.translate.x;
+                previousBucketTranslateValue.y = this.translate.y;
                 //当移动到一个固定的区域时触发动画/其他函数
                 if((this.translate.x >=-0.97) && (this.translate.x <= 0) &&(this.translate.y >= 0.033)&&(this.translate.y<=0.696)){
                     World.meet.enabled = false;
@@ -213,21 +230,20 @@ var World = {
                 z:0
             },
             //移动
-            onPanBegan: function() {
-                oneFingerGestureAllowed = false;
+            onDragBegan: function() {
+                oneFingerGestureAllowed = true;
                 return true;
             },
-            onPanChanged: function(x,y) {
-                //有问题，把y轴都换成了z轴
+            onDragChanged: function(x,y) {
                 this.translate={
-                    x:previousTranslateValue.x + x,
-                    z:previousTranslateValue.z - y
+                    x:previousWoodTranslateValue.x + x,
+                    y:previousWoodTranslateValue.y - y
                 }
                 return true;
             },
-            onPanEnded: function() {
-                previousTranslateValue.x = this.translate.x;
-                previousTranslateValue.z = this.translate.z;
+            onDragEnded: function() {
+                previousWoodTranslateValue.x = this.translate.x;
+                previousWoodTranslateValue.y = this.translate.y;
                 return true;
             },
             enabled: false,//最初设置模型为不可用
@@ -253,21 +269,20 @@ var World = {
                 z:-90
             },
             //移动
-            onPanBegan: function() {
-                oneFingerGestureAllowed = false;
+            onDragBegan: function() {
+                oneFingerGestureAllowed = true;
                 return true;
             },
-            onPanChanged: function(x,y) {
-                //有问题，把y轴都换成了z轴
+            onDragChanged: function(x,y) {
                 this.translate={
-                    x:previousTranslateValue.x + x,
-                    z:previousTranslateValue.z - y
+                    x:previousMeetTranslateValue.x + x,
+                    y:previousMeetTranslateValue.y - y
                 }
                 return true;
             },
-            onPanEnded: function() {
-                previousTranslateValue.x = this.translate.x;
-                previousTranslateValue.z = this.translate.z;
+            onDragEnded: function() {
+                previousMeetTranslateValue.x = this.translate.x;
+                previousMeetTranslateValue.y = this.translate.y;
                 return true;
             },
             enabled: false,//最初设置模型为不可用
