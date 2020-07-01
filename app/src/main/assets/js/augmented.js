@@ -271,11 +271,12 @@ var World = {
                     &&(this.translate.y >= 1.447)&&(this.translate.y <= 1.763)
                     &&(this.translate.z >= -0.444)&&(this.translate.z <= 0.147)){
                     World.bucket.enabled = false;
-                    //加水
+                    //加水的动画
 
 
                     //播放下一个操作的提示音频
                     World.woodAdudio.play(1);
+                    World.playingAudioTag = 2;
                 }
                 return true;
             },
@@ -323,6 +324,8 @@ var World = {
                         World.wood.translate.y = -0.106;
                         World.wood.translate.z = -0.209;
                         World.coal.enabled = true;
+                        World.meatAdudio.play(1);
+                        World.playingAudioTag = 3;
                 }
 //                var position = {
 //                    x: -0.255,
@@ -371,6 +374,8 @@ var World = {
                 if((this.translate.x >= -0.9)&&(this.translate.x <= 0.24)&&(this.translate.y >= 1.65)&&(this.translate.y <= 2.0)&&(this.translate.z >= -0.37)&&(this.translate.z <= 0.032)){
                     World.meat.enabled = false;
                     World.cookedMeat.enabled = true;
+                    World.endAudio.play(1);
+                    World.playingAudioTag = 4;
                 }
                 return true;
             },
@@ -469,22 +474,22 @@ var World = {
 
         //静态界面点击小精灵
         if(title_text == "static"){
-            World.playSound(World.hmwdInfoAdudio, "static");
+            World.playSound(World.hmwdInfoAdudio);
         }else if(title_text == "dynamic"){ //动态界面根据移动情况，决定要播放哪个音频
             if(World.playingAudioTag == 1){
-                World.playSound(World.bucketAdudio, "dynamic");
+                World.playSound(World.bucketAdudio);
             }else if(World.playingAudioTag == 2){
-                World.playSound(World.woodAdudio, "dynamic");
+                World.playSound(World.woodAdudio);
             }else if(World.playingAudioTag == 3){
-                World.playSound(World.meatAdudio, "dynamic");
+                World.playSound(World.meatAdudio);
             }else if(World.playingAudioTag == 4){
-               World.playSound(World.endAudio, "dynamic");
+               World.playSound(World.endAudio);
             }
         }
     },
 
     //音频的播放规则
-    playSound: function playSoundFn(audio, tag){
+    playSound: function playSoundFn(audio){
         if(audio.state == AR.CONST.STATE.PLAYING){//正在播放则直接暂停
             audio.pause();
         }else if(audio.state == AR.CONST.STATE.PAUSED){//如果之前是被暂停的，重新播放，
