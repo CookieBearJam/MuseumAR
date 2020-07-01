@@ -45,8 +45,9 @@ var coalScale = 0.02;// 木炭模型
 var woodpileScale = 0.015;// 柴堆模型
 var cookedMeatScale = 0.0006;// 熟肉模型
 
-
 var occluderScale = 0.0035;//封堵器
+
+var playingAudioTag = 1;//1、2、3、4分别表示增强界面的音频播放情况
 
 //定义方法，启动二指模式识别（存疑）
 AR.context.on2FingerGestureStarted = function() {
@@ -60,6 +61,7 @@ var World = {
 
     //初始化方法，先创建展示的静态模型资源，再创建对象跟踪器
     init: function initFn() {
+        World.createAudios();
         World.createModels();
         World.createOccluder();
         World.createTracker();
@@ -103,6 +105,34 @@ var World = {
         });
     },
 
+    // 创建介绍需要的音频
+    createAudios:function createAudiosFn(){
+        this.hmwdInfoAdudio = new AR.Sound("assets/audio/hmwd.mp3", {
+            onLoaded : function(){ hmwdInfoAdudio.play(-1); }, // 加载后无限循环
+            onError: World.onError
+        });
+        this.hmwdInfoAdudio.load();//加载
+
+        this.dynamicInfoAudio = new AR.Sound("assets/audio/dy-1.mp3",{
+            onError: World.onError
+        });
+        this.dynamicInfoAudio.load();
+
+        this.bucketAdudio = new AR.Sound("assets/audio/dy-2.mp3", {
+            onError: World.onError
+        });
+        this.bucketAdudio.load();//加载
+
+        this.woodAdudio = new AR.Sound("assets/audio/dy-3.mp3", {
+           onError: World.onError
+        });
+        this.woodAdudio.load();//加载
+
+        this.meatAdudio = new AR.Sound("assets/audio/dy-4.mp3", {
+            onError: World.onError
+        });
+        this.meatAdudio.load();//加载
+    },
 
     // 加载3D模型资源
     createModels:function createModelsFn(){
@@ -353,6 +383,9 @@ var World = {
                 y: -180,
                 z: 0
             },
+            onClick: function() {
+                World.elfClicked();
+            },
         });
 
         /* 每帧的播放时间为 84ms(5秒60帧)  参数-1无限循环 */
@@ -410,6 +443,26 @@ var World = {
 
     },
 
+    //点击小精灵时需要进行的操作
+    elfClicked: function elfClickedFn(){
+        var title_text = document.title;//获取当前页面的标签
+
+        //静态界面点击小精灵
+        if(title_text == "static"){
+            if(World.hmwdInfoAdudio.state == AR.CONST.STATE.PLAYING){//正在播放则直接暂停
+                World.hmwdInfoAdudio.pause();
+            }else if(World.hmwdInfoAdudio.state == AR.CONST.STATE.PAUSED){//如果之前是被暂停的，重新播放，
+                World.hmwdInfoAdudio.resume();//相当于play(1)
+            }else if(World.hmwdInfoAdudio.state == AR.CONST.STATE.LOADED){//如果播放完成则重新循环播放
+                World.hmwdInfoAdudio.play(-1);
+            }
+        }else if(title_text == "dynamic"){ //动态界面根据移动情况，决定要播放哪个音频
+//            if( this.bucketAdudio.state == AR.CONST.PLAYING ){
+//
+//            }
+        }
+    },
+
     //对象识别成功时，静态界面设置drawables数组中的小精灵和文物静态模型为可见
     //动态界面设置文物静态模型和所有增强模型为不可见，点击按钮时一次出现一次消失
     objectRecognized: function objectRecognizedFn() {
@@ -421,7 +474,13 @@ var World = {
             World.setAugmentationsEnabled(1, World.drawables.length - 1, false);
             World.drawables[4].enabled = true;//小精灵
             World.appear(World.relicsAppearAnimation);//播放出现动画
+
+            //加载同时循环播放介绍语音
+            World.hmwdInfoAdudio.load();
         }else if(title_text == "dynamic"){
+            //加载的同时播放动态界面第一次的介绍语音
+            World.dynamicInfoAudio.load();
+
             /*设置按钮可见*/
             document.getElementById("water").style.visibility = "visible";
             document.getElementById("wood").style.visibility = "visible";
@@ -429,6 +488,8 @@ var World = {
             World.setAugmentationsEnabled(0, World.drawables.length, false);
             World.drawables[4].enabled = true;//小精灵
             World.drawables[7].enabled = true;//封堵器
+
+
         }
     },
 
