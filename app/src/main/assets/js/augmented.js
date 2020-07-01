@@ -47,7 +47,7 @@ var cookedMeatScale = 0.0006;// 熟肉模型
 
 var occluderScale = 0.0035;//封堵器
 
-var playingAudioTag = 1;//1、2、3、4分别表示增强界面的音频播放情况
+var playingAudioTag = 0;//0表示没有音频正在播放，1、2、3、4分别表示增强界面的音频播放情况
 
 //定义方法，启动二指模式识别（存疑）
 AR.context.on2FingerGestureStarted = function() {
@@ -108,30 +108,46 @@ var World = {
     // 创建介绍需要的音频
     createAudios:function createAudiosFn(){
         this.hmwdInfoAdudio = new AR.Sound("assets/audio/hmwd.mp3", {
-            onLoaded : function(){ hmwdInfoAdudio.play(-1); }, // 加载后无限循环
+//            onLoaded : function(){ World.hmwdInfoAdudio.play(-1); }, // 加载后无限循环
             onError: World.onError
         });
         this.hmwdInfoAdudio.load();//加载
 
-        this.dynamicInfoAudio = new AR.Sound("assets/audio/dy-1.mp3",{
+        //先加水
+        this.bucketAdudio = new AR.Sound("assets/audio/dy-1.mp3", {
             onError: World.onError
         });
-        this.dynamicInfoAudio.load();
-
-        this.bucketAdudio = new AR.Sound("assets/audio/dy-2.mp3", {
+        this.bucketAdudio.load();
+        this.pourWaterAudio = new AR.Sound("assets/audio/dy-1.mp3", {//倒水的声音
             onError: World.onError
         });
-        this.bucketAdudio.load();//加载
+        this.pourWaterAudio.load();
 
+        //然后放柴火烧水
         this.woodAdudio = new AR.Sound("assets/audio/dy-3.mp3", {
            onError: World.onError
         });
-        this.woodAdudio.load();//加载
+        this.woodAdudio.load();
+        this.woodFiringAudio = new AR.Sound("assets/audio/dy-3.mp3", {//柴火燃烧的声音
+            onError: World.onError
+        });
+        this.woodFiringAudio.load();
 
+        //加入生肉，浮沉烹煮
         this.meatAdudio = new AR.Sound("assets/audio/dy-4.mp3", {
             onError: World.onError
         });
-        this.meatAdudio.load();//加载
+        this.meatAdudio.load();
+        this.boilingAudio = new AR.Sound("assets/audio/dy-1.mp3",{//水沸腾的声音
+            onError: World.onError
+        });
+        this.boilingAudio.load();
+
+        //煮好后提示声音
+        this.endAudio = new AR.Sound("assets/audio/dy-1.mp3",{
+            onError: World.onError
+        });
+        this.endAudio.load();
     },
 
     // 加载3D模型资源
@@ -256,6 +272,10 @@ var World = {
                     &&(this.translate.z >= -0.444)&&(this.translate.z <= 0.147)){
                     World.bucket.enabled = false;
                     //加水
+
+
+                    //播放下一个操作的提示音频
+                    World.woodAdudio.play(1);
                 }
                 return true;
             },
@@ -449,17 +469,28 @@ var World = {
 
         //静态界面点击小精灵
         if(title_text == "static"){
-            if(World.hmwdInfoAdudio.state == AR.CONST.STATE.PLAYING){//正在播放则直接暂停
-                World.hmwdInfoAdudio.pause();
-            }else if(World.hmwdInfoAdudio.state == AR.CONST.STATE.PAUSED){//如果之前是被暂停的，重新播放，
-                World.hmwdInfoAdudio.resume();//相当于play(1)
-            }else if(World.hmwdInfoAdudio.state == AR.CONST.STATE.LOADED){//如果播放完成则重新循环播放
-                World.hmwdInfoAdudio.play(-1);
-            }
+            World.playSound(World.hmwdInfoAdudio, "static");
         }else if(title_text == "dynamic"){ //动态界面根据移动情况，决定要播放哪个音频
-//            if( this.bucketAdudio.state == AR.CONST.PLAYING ){
-//
-//            }
+            if(World.playingAudioTag == 1){
+                World.playSound(World.bucketAdudio, "dynamic");
+            }else if(World.playingAudioTag == 2){
+                World.playSound(World.woodAdudio, "dynamic");
+            }else if(World.playingAudioTag == 3){
+                World.playSound(World.meatAdudio, "dynamic");
+            }else if(World.playingAudioTag == 4){
+               World.playSound(World.endAudio, "dynamic");
+            }
+        }
+    },
+
+    //音频的播放规则
+    playSound: function playSoundFn(audio, tag){
+        if(audio.state == AR.CONST.STATE.PLAYING){//正在播放则直接暂停
+            audio.pause();
+        }else if(audio.state == AR.CONST.STATE.PAUSED){//如果之前是被暂停的，重新播放，
+            audio.resume();//相当于play(1)
+        }else if(audio.state == AR.CONST.STATE.LOADED){//如果是播放完结的
+            audio.play(1);
         }
     },
 
@@ -476,10 +507,8 @@ var World = {
             World.appear(World.relicsAppearAnimation);//播放出现动画
 
             //加载同时循环播放介绍语音
-            World.hmwdInfoAdudio.load();
+            World.hmwdInfoAdudio.play(-1);
         }else if(title_text == "dynamic"){
-            //加载的同时播放动态界面第一次的介绍语音
-            World.dynamicInfoAudio.load();
 
             /*设置按钮可见*/
             document.getElementById("water").style.visibility = "visible";
@@ -490,12 +519,31 @@ var World = {
             World.drawables[7].enabled = true;//封堵器
 
 
+            //播放动态介绍音频\木桶移动音频
+            World.bucketAdudio.play(1);
+            World.playingAudioTag = 1;
         }
+    },
+
+    stophmwd: function stophmwdFn(){
+        World.hmwdInfoAdudio.stop();
     },
 
     //对象丢失时将所有的模型设置为不可见
     //还需要设置页面跳转时使用不同的js，让当前的效果（包括后续的动态效果）都消失
     objectLost: function objectLostFn() {
+        World.hmwdInfoAdudio.stop();
+
+        World.bucketAdudio.stop();
+        World.woodAdudio.stop();
+        World.meatAdudio.stop();
+        World.endAudio.stop();
+
+        World.pourWaterAudio.stop();
+        World.woodFiringAudio.stop();
+        World.woodFiringAudio.stop();
+
+
         World.setAugmentationsEnabled(0, World.drawables.length, false);
     },
 

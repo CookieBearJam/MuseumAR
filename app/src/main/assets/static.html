@@ -27,11 +27,11 @@
             $("#details").on("click",function() {
                 url = "html/detail.html?id="+id;
                 window.location.href = url;
-                return false;//华海说为了kill之前的js，需要加这个
             });
             $("#ar").on("click",function() {
                 url = "dynamic.html?id="+id;
                 window.location.href = url;
+                World.stophmwd();//停止先前的介绍音频播放
             });
         }
         function ButtonHide(btn){//留给不需要AR按钮的文物，可隐藏按钮使用方法：ButtonHide(document.getElementById("ar"));
