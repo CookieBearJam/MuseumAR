@@ -1,5 +1,10 @@
 /*展示静态文物模型界面*/
 
+//用桶加水、水位上升，哗啦啦的声音
+//加火柴，瞬移，咔哧咔哧的声音
+//加肉肉（raw），瞬移，上下浮沉煮肉，从水冒泡到煮肉咕嘟咕嘟的声音
+//动画播完，肉熟了，变颜色，同时播放完成的语音
+
 //声明全局变量，存储控制的模型的位置数据
 var previousTranslateValue = {
     x:0,
@@ -84,7 +89,7 @@ var World = {
                 x: 270
             }
         });
-        World.drawables.push(this.houMuWuDingOccluder);//7
+        World.drawables.push(this.houMuWuDingOccluder);//8
     },
 
     // 对象跟踪器
@@ -108,40 +113,47 @@ var World = {
     // 创建介绍需要的音频
     createAudios:function createAudiosFn(){
         this.hmwdInfoAdudio = new AR.Sound("assets/audio/hmwd.mp3", {
-//            onLoaded : function(){ World.hmwdInfoAdudio.play(-1); }, // 加载后无限循环
             onError: World.onError
         });
         this.hmwdInfoAdudio.load();//加载
+
 
         //先加水
         this.bucketAdudio = new AR.Sound("assets/audio/dy-1.mp3", {
             onError: World.onError
         });
         this.bucketAdudio.load();
-        this.pourWaterAudio = new AR.Sound("assets/audio/dy-1.mp3", {//倒水的声音
+        this.pourWaterAudio = new AR.Sound("assets/audio/pouring.mp3", {//倒水的声音
             onError: World.onError
         });
         this.pourWaterAudio.load();
+        this.waterBoilingAudio = new AR.Sound("assets/audio/boiling.mp3",{//水沸腾的声音
+            onError: World.onError
+        });
+        this.waterBoilingAudio.load();
+        this.cookingAudio = new AR.Sound("assets/audio/cooking.wav",{//水沸腾的声音
+            onError: World.onError
+        });
+        this.cookingAudio.load();
+
 
         //然后放柴火烧水
         this.woodAdudio = new AR.Sound("assets/audio/dy-3.mp3", {
            onError: World.onError
         });
         this.woodAdudio.load();
-        this.woodFiringAudio = new AR.Sound("assets/audio/dy-3.mp3", {//柴火燃烧的声音
+        this.woodFiringAudio = new AR.Sound("assets/audio/burning.wav", {//柴火燃烧的声音
             onError: World.onError
         });
         this.woodFiringAudio.load();
+
 
         //加入生肉，浮沉烹煮
         this.meatAdudio = new AR.Sound("assets/audio/dy-4.mp3", {
             onError: World.onError
         });
         this.meatAdudio.load();
-        this.boilingAudio = new AR.Sound("assets/audio/dy-1.mp3",{//水沸腾的声音
-            onError: World.onError
-        });
-        this.boilingAudio.load();
+
 
         //煮好后提示声音
         this.endAudio = new AR.Sound("assets/audio/dy-1.mp3",{
@@ -232,7 +244,7 @@ var World = {
             onError: World.onError
         });
          //播放出现时的缩放动画
-        this.relicsAppearAnimation = this.createAppearingAnimation(this.houMuWuDing, relicsScale);
+        this.relicsAppearAnimation = this.createRelicsAppearingAnimation(this.houMuWuDing, relicsScale);
 
         /*木桶模型*/
         this.bucket = new AR.Model("assets/augmented/bucket.wt3", {
@@ -271,10 +283,14 @@ var World = {
                     &&(this.translate.y >= 1.447)&&(this.translate.y <= 1.763)
                     &&(this.translate.z >= -0.444)&&(this.translate.z <= 0.147)){
                     World.bucket.enabled = false;
-                    //加水的动画
-
-
+                    World.water.enabled = true;
+                    //播放加水的动画
+                    World.playWaterAnmiation();
+                    //加水的动画音
+                    World.pourWaterAudio.play(1);
                     //播放下一个操作的提示音频
+                    while(World.pourWaterAudio.state != AR.CONST.STATE.LOADED){
+                    }
                     World.woodAdudio.play(1);
                     World.playingAudioTag = 2;
                 }
@@ -317,6 +333,7 @@ var World = {
                 previousWoodTranslateValue.x = this.translate.x;
                 previousWoodTranslateValue.y = this.translate.y;
                 if((this.translate.x >= -0.601)&&(this.translate.x <= 0.055)&&(this.translate.y>= -0.024)&&(this.translate.y <= 0.369)&&(this.translate.z >= -0.467)&&(this.translate.z <= 0.067)){
+                        //瞬移，调整模型大小
                         World.wood.scale.x = woodpileScale;
                         World.wood.scale.y = woodpileScale;
                         World.wood.scale.z = woodpileScale;
@@ -324,6 +341,12 @@ var World = {
                         World.wood.translate.y = -0.106;
                         World.wood.translate.z = -0.209;
                         World.coal.enabled = true;
+                        //播放火焰燃烧的声音和水沸腾的声音
+                        World.woodFiringAudio.play(1);//9s
+                        World.waterBoilingAudio.play(1);//5s
+                        while(World.woodFiringAudio.state != AR.CONST.STATE.LOADED){
+                        }//当这两个动画音播完再播下一个
+                        //播放下一个操作的提示音
                         World.meatAdudio.play(1);
                         World.playingAudioTag = 3;
                 }
@@ -372,10 +395,26 @@ var World = {
                 previousMeatTranslateValue.x = this.translate.x;
                 previousMeatTranslateValue.y = this.translate.y;
                 if((this.translate.x >= -0.9)&&(this.translate.x <= 0.24)&&(this.translate.y >= 1.65)&&(this.translate.y <= 2.0)&&(this.translate.z >= -0.37)&&(this.translate.z <= 0.032)){
-                    World.meat.enabled = false;
-                    World.cookedMeat.enabled = true;
+//                    World.meat.enabled = false;
+//                    World.cookedMeat.enabled = true;
+
+                    //生肉瞬移
+                    World.meat.translate.x = -0.282;
+                    World.meat.translate.y = 1.259;
+                    World.meat.translate.z = -0.194;
+                    //x: -0.282,
+                    //y: 1.259,
+                    //z: -0.194
+                    //播放肉在锅中浮沉的动画
+
+                    //播放咕嘟咕嘟的煮肉声
+                    World.cookingAudio.play(1);
+                    //声音播放完毕，再播放结束的提示音
+                    while(World.cookingAudio.state != AR.CONST.STATE.LOADED){
+                    }
                     World.endAudio.play(1);
                     World.playingAudioTag = 4;
+                    //停止动画和一切声音
                 }
                 return true;
             },
@@ -464,7 +503,33 @@ var World = {
         World.drawables.push(this.coal);//5
         World.drawables.push(this.cookedMeat);//6
 
-        /* 水模型*/
+        /* 水模型,一个是之前的参数，一个是经过动画后的位置参数*/
+        /*
+            x: -0.276
+            y: 1.052
+            z: -0.25
+        */
+        this.water = new AR.Model("assets/augmented/cookedMeat.wt3",{
+             scale: {
+                 x: cookedMeatScale,
+                 y: cookedMeatScale,
+                 z: cookedMeatScale
+             },
+             translate: {
+                 x: -0.276,
+                 y: 0.902,
+                 z: -0.25
+             },
+             rotate: {
+                 x:270,
+                 y:0,
+                 z:0
+             },
+             enabled: false,//最初设置模型为不可用
+             onLoaded: World.showInfoBar,
+             onError: World.onError
+         });
+         World.drawables.push(this.water);//7
 
     },
 
@@ -511,18 +576,16 @@ var World = {
             World.drawables[4].enabled = true;//小精灵
             World.appear(World.relicsAppearAnimation);//播放出现动画
 
-            //加载同时循环播放介绍语音
-            World.hmwdInfoAdudio.play(-1);
+            //播放介绍语音
+            World.hmwdInfoAdudio.play(1);
         }else if(title_text == "dynamic"){
-
             /*设置按钮可见*/
             document.getElementById("water").style.visibility = "visible";
             document.getElementById("wood").style.visibility = "visible";
             document.getElementById("beef").style.visibility = "visible";
             World.setAugmentationsEnabled(0, World.drawables.length, false);
             World.drawables[4].enabled = true;//小精灵
-            World.drawables[7].enabled = true;//封堵器
-
+            World.drawables[8].enabled = true;//封堵器
 
             //播放动态介绍音频\木桶移动音频
             World.bucketAdudio.play(1);
@@ -530,6 +593,7 @@ var World = {
         }
     },
 
+    //仅供html调用，停止静态界面音频播放
     stophmwd: function stophmwdFn(){
         World.hmwdInfoAdudio.stop();
     },
@@ -548,8 +612,7 @@ var World = {
         World.woodFiringAudio.stop();
         World.woodFiringAudio.stop();
 
-
-        World.setAugmentationsEnabled(0, World.drawables.length, false);
+        World.setAugmentationsEnabled(0, World.drawables.length, false);//所有模型设置为不可见
     },
 
     //设置所有的增强模型为enabled的值
@@ -560,7 +623,7 @@ var World = {
     },
 
     //创建静态模型的出现动画
-    createAppearingAnimation: function createAppearingAnimationFn(model, scale) {
+    createRelicsAppearingAnimation: function createRelicsAppearingAnimationFn(model, scale) {
         var sx = new AR.PropertyAnimation(model, "scale.x", 0, scale, 1500, {
             type: AR.CONST.EASING_CURVE_TYPE.EASE_OUT_ELASTIC
         });
@@ -576,6 +639,15 @@ var World = {
     appear: function appearFn(animation) {
         World.hideInfoBar();
         World.relicsAppearAnimation.start();//播放静态模型的出现动画
+    },
+
+    //创建生肉在锅里浮沉的动画
+
+
+    //创建并播放水上下的动画
+    playWaterAnmiation: function playWaterAnmiation(){
+        var waterAnimation = new AR.PropertyAnimation(World.water, "translate.y", 0.902, 1.052, 1500);
+        waterAnimation.start();
     },
 
     onError: function onErrorFn(error) {
