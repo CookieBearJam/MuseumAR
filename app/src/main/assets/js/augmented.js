@@ -15,34 +15,35 @@ var previousRotationValue = {
 };
 
 var previousBucketTranslateValue = {
-    x: 1.013,
+    x: 0.8,
     y: 1.232,
-    z: 0.116
+    z: 0//0.116
 };
 
 var previousWoodTranslateValue = {
-    x: 1.021,
-    y: 0.86,
-    z: 0
+    x: 0.9,
+    y: 0.704,
+    z: 0//0.194
 };
 
-var previousMeetTranslateValue = {
-    x: 1.052,
-    y: 0.135,
-    z: 0.06
+var previousMeatTranslateValue = {
+    x: 0.9,
+    y: 0.434,
+    z: 0//0.076测试时没有z轴的变化，故而直接设置为0
 };
 
 var relicsScale = 0.002;//文物静态模型的大小
 
 var oneFingerGestureAllowed = false;//先禁止单指模式识别（存疑）
 
-var bucketScale = 0.01;//木桶模型的大小
+var bucketScale = 0.012;//木桶模型的大小
 var woodScale = 0.008;//木头模型的大小
-var meetScale = 0.003;//肉的模型大小
+var meatScale = 0.0006;//生肉的模型大小
 
-var bucketPouringScale = 0.11;//倒水动画的大小
-var woodFiringScale = 0.07;//火苗燃烧动画的大小
-var meetBurntScale = 0.02;//沸水动画的大小
+var waterScale = 0.11;// 水模型的大小
+var coalScale = 0.02;// 木炭模型的大小
+var cookedMeatScale = 0.0007;// 熟肉模型的大小
+var woodpileScale = 0.015;//木柴动画大小
 
 //定义方法，启动二指模式识别（存疑）
 AR.context.on2FingerGestureStarted = function() {
@@ -163,7 +164,6 @@ var World = {
             onLoaded: World.showInfoBar,
             onError: World.onError
         });
-
          //播放后母戊鼎的出现时的缩放动画
         this.relicsAppearAnimation = this.createAppearingAnimation(this.houMuWuDing, relicsScale);
 
@@ -175,9 +175,9 @@ var World = {
                 z: bucketScale
             },
             translate: {
-                x: 1.013,
+                x: 0.8,
                 y: 1.232,
-                z: 0.116
+                z: 0
             },
             rotate: {
                 x:270,
@@ -201,8 +201,10 @@ var World = {
                 previousBucketTranslateValue.x = this.translate.x;
                 previousBucketTranslateValue.y = this.translate.y;
                 //当移动到一个固定的区域时触发动画/其他函数
-                if((this.translate.x >=-0.97) && (this.translate.x <= 0) &&(this.translate.y >= 0.033)&&(this.translate.y<=0.696)){
-                    World.meet.enabled = false;
+                if((this.translate.x >= -0.572)&&(this.translate.x <= 0.211)
+                    &&(this.translate.y >= 0.822)&&(this.translate.y <= 1.426)
+                    &&(this.translate.z >= -0.577)&&(this.translate.z <= 0.074)){
+                    World.bucket.enabled = false;
                 }
                 return true;
             },
@@ -213,20 +215,20 @@ var World = {
         });
 
         /*木头（可拖动）按键对应的模型*/
-        this.wood = new AR.Model("assets/augmented/wood.wt3",{
+        this.wood = new AR.Model("assets/augmented/woodpile.wt3",{
             scale: {
                 x: woodScale,
                 y: woodScale,
                 z: woodScale
             },
             translate: {
-                x: 1.021,
-                y: 0.86,
+                x: 0.9,
+                y: 0.704,
                 z: 0
             },
             rotate: {
-                x:-45,
-                y:52,
+                x:270,
+                y:0,
                 z:0
             },
             //移动
@@ -244,6 +246,22 @@ var World = {
             onDragEnded: function() {
                 previousWoodTranslateValue.x = this.translate.x;
                 previousWoodTranslateValue.y = this.translate.y;
+                if((this.translate.x >= -0.572)&&(this.translate.x <= 0.211)&&(this.translate.y>= -0.017)&&(this.translate.y <= 0.561)&&(this.translate.z >= -0.577)&&(this.translate.z <= 0.074)){
+                        World.wood.scale.x = woodpileScale;
+                        World.wood.scale.y = woodpileScale;
+                        World.wood.scale.z = woodpileScale;
+                        World.wood.translate.x = -0.255;
+                        World.wood.translate.y = -0.106;
+                        World.wood.translate.z = -0.209;
+                        World.coal.enabled = true;
+                }
+//                //当移动到一个范围时，需要将木头模型的位置直接位移到该去的地方(即下面这个position)
+//                var position = {
+//                    x: -0.255,
+//                    y: -0.106,
+//                    z: -0.209
+//                }
+//                此时大小为
                 return true;
             },
             enabled: false,//最初设置模型为不可用
@@ -252,21 +270,21 @@ var World = {
         });
 
         /* 肉（可拖动）按键对应的模型 */
-        this.meet = new AR.Model("assets/augmented/meet.wt3",{
+        this.meat = new AR.Model("assets/augmented/rawMeat.wt3",{
             scale: {
-                x: meetScale,
-                y: meetScale,
-                z: meetScale
+                x: meatScale,
+                y: meatScale,
+                z: meatScale
             },
             translate: {
-                x: 1.052,
-                y: 0.135,
-                z: 0.06
+                x: 0.9,
+                y: 0.434,
+                z: 0
             },
             rotate: {
-                x:180,
-                y:-90,
-                z:-90
+                x: 180,
+                y: -180,
+                z: 0
             },
             //移动
             onDragBegan: function() {
@@ -275,14 +293,18 @@ var World = {
             },
             onDragChanged: function(x,y) {
                 this.translate={
-                    x:previousMeetTranslateValue.x + x,
-                    y:previousMeetTranslateValue.y - y
+                    x:previousMeatTranslateValue.x + x,
+                    y:previousMeatTranslateValue.y - y
                 }
                 return true;
             },
             onDragEnded: function() {
-                previousMeetTranslateValue.x = this.translate.x;
-                previousMeetTranslateValue.y = this.translate.y;
+                previousMeatTranslateValue.x = this.translate.x;
+                previousMeatTranslateValue.y = this.translate.y;
+                if((this.translate.x >= -0.572)&&(this.translate.x <= 0.211)&&(this.translate.y >= 0.822)&&(this.translate.y <= 1.426)&&(this.translate.z >= -0.577)&&(this.translate.z <= 0.074)){
+                    World.meat.enabled = false;//生肉模型显示为false
+                    World.cookedMeat.enabled = true;//同时显示熟肉动画
+                }
                 return true;
             },
             enabled: false,//最初设置模型为不可用
@@ -295,7 +317,7 @@ var World = {
         World.drawables.push(this.houMuWuDing);//0
         World.drawables.push(this.bucket);//1
         World.drawables.push(this.wood);//2
-        World.drawables.push(this.meet);//3
+        World.drawables.push(this.meat);//3
 
         /*创建小精灵的gif动画*/
         // Gif中，每秒12帧，单个帧的大小为260*310，每一行为4帧，一共3行，即源图片大小为(260*4 = 1040)*(310*3 = 930)
@@ -303,28 +325,77 @@ var World = {
             onError: World.onError
         });
 
-        this.elf = new AR.AnimatedImageDrawable(this.imgElf, 0.75, 260, 310, {//height,frame_width,frame_height
+        this.elf = new AR.AnimatedImageDrawable(this.imgElf, 0.5, 260, 310, {//height,frame_width,frame_height
             translate: {
-               x: 0.877,
-               y: 2.106,
-               z: 0.141
+               x: 0.8,
+               y: 2.0,
+               z: 0
             },
             rotates: {
                 x: 0,
                 y: 0,
                 z: 0
             },
-//            onClick: { //点击以后触发的播放音频操作，目前报错说没有这个属性
-//
-//            }
         });
 
         /* 每帧的播放时间为 84ms(5秒60帧)  参数-1 表示无限循环 */
         this.elf.animate([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], 84, -1);
+
+        /*添加木炭的模型*/
+        /* 木炭（作为火焰动画）的模型 */
+        this.coal = new AR.Model("assets/augmented/coal.wt3",{
+            scale: {
+                x: coalScale,
+                y: coalScale,
+                z: coalScale
+            },
+            translate: {
+                x: -0.203,
+                y: 0.175,
+                z: -0.101
+            },
+            rotate: {
+                x:270,
+                y:0,
+                z:0
+            },
+            enabled: false,//最初设置模型为不可用
+            onLoaded: World.showInfoBar,
+            onError: World.onError
+        });
+
+        /*熟肉模型*/
+        this.cookedMeat = new AR.Model("assets/augmented/cookedMeat.wt3",{
+            scale: {
+                x: cookedMeatScale,
+                y: cookedMeatScale,
+                z: cookedMeatScale
+            },
+            translate: {
+                x: -0.282,
+                y: 1.102,
+                z: -0.017
+            },
+            rotate: {
+                x:280,
+                y:30,
+                z:0
+            },
+            enabled: false,//最初设置模型为不可用
+            onLoaded: World.showInfoBar,
+            onError: World.onError
+        });
+
         World.drawables.push(this.elf);//4
+        World.drawables.push(this.coal);//5
+        World.drawables.push(this.cookedMeat);//6
+
+        /*水的模型*/
+
     },
 
-    //对象识别成功时，设置drawables数组中所有的模型为可见
+    //对象识别成功时，静态界面设置drawables数组中的小精灵和文物静态模型为可见
+    //动态界面设置文物静态模型和所有增强模型为不可见，点击按钮时一次出现一次消失
     objectRecognized: function objectRecognizedFn() {
         World.hideInfoBar();//隐藏提示框
 
@@ -338,14 +409,16 @@ var World = {
             document.getElementById("water").style.visibility = "visible";
             document.getElementById("wood").style.visibility = "visible";
             document.getElementById("beef").style.visibility = "visible";
-            World.setAugmentationsEnabled(0, 3, false);
+            World.setAugmentationsEnabled(0, 4, false);//静态模型+三个静态增强模型
+//            World.setAugmentationsEnabled(5, 2, false);//除小精灵外的三个动态效果
+            World.elf.enabled = true;
         }
     },
 
     //对象丢失时将所有的模型设置为不可见
-    //还需要设置页面跳转时使用不同的js，让当前的效果都消失
+    //还需要设置页面跳转时使用不同的js，让当前的效果（包括后续的动态效果）都消失
     objectLost: function objectLostFn() {
-        World.setAugmentationsEnabled(0, 3, false);
+        World.setAugmentationsEnabled(0, 7, false);
     },
 
     //设置所有的增强模型为enabled的值
