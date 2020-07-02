@@ -45,7 +45,7 @@ var bucketScale = 0.012;//木桶模型
 var woodScale = 0.009;//木头模型
 var meatScale = 0.0006;//生肉模型
 
-var waterScale = 0.11;// 水模型
+var waterScale = 0.004639;// 水模型
 var coalScale = 0.02;// 木炭模型
 var woodpileScale = 0.015;// 柴堆模型
 var cookedMeatScale = 0.0006;// 熟肉模型
@@ -149,14 +149,14 @@ var World = {
 
 
         //加入生肉，浮沉烹煮
-        this.meatAdudio = new AR.Sound("assets/audio/dy-4.mp3", {
+        this.meatAdudio = new AR.Sound("assets/audio/dy-2.mp3", {
             onError: World.onError
         });
         this.meatAdudio.load();
 
 
         //煮好后提示声音
-        this.endAudio = new AR.Sound("assets/audio/dy-1.mp3",{
+        this.endAudio = new AR.Sound("assets/audio/dy-4.mp3",{
             onError: World.onError
         });
         this.endAudio.load();
@@ -282,12 +282,13 @@ var World = {
                 if((this.translate.x >= -0.845)&&(this.translate.x <= 0.257)
                     &&(this.translate.y >= 1.447)&&(this.translate.y <= 1.763)
                     &&(this.translate.z >= -0.444)&&(this.translate.z <= 0.147)){
+
                     World.bucket.enabled = false;
-                    World.water.enabled = true;
                     //播放加水的动画
-                    World.playWaterAnmiation();
+//                    World.playWaterAnmiation();
                     //加水的动画音
                     World.pourWaterAudio.play(1);
+                    World.water.enabled = true;
                     //播放下一个操作的提示音频
                     while(World.pourWaterAudio.state != AR.CONST.STATE.LOADED){
                     }
@@ -341,6 +342,7 @@ var World = {
                         World.wood.translate.y = -0.106;
                         World.wood.translate.z = -0.209;
                         World.coal.enabled = true;
+
                         //播放火焰燃烧的声音和水沸腾的声音
                         World.woodFiringAudio.play(1);//9s
                         World.waterBoilingAudio.play(1);//5s
@@ -402,6 +404,7 @@ var World = {
                     World.meat.translate.x = -0.282;
                     World.meat.translate.y = 1.259;
                     World.meat.translate.z = -0.194;
+                    //要移动到的位置：
                     //x: -0.282,
                     //y: 1.259,
                     //z: -0.194
@@ -409,9 +412,11 @@ var World = {
 
                     //播放咕嘟咕嘟的煮肉声
                     World.cookingAudio.play(1);
-                    //声音播放完毕，再播放结束的提示音
                     while(World.cookingAudio.state != AR.CONST.STATE.LOADED){
                     }
+                    //直到动画化结束，生肉变熟才播放结束提示音
+                    World.meat.enabled = false;
+                    World.cookedMeat.enabled = true;
                     World.endAudio.play(1);
                     World.playingAudioTag = 4;
                     //停止动画和一切声音
@@ -508,16 +513,18 @@ var World = {
             x: -0.276
             y: 1.052
             z: -0.25
+
+            测试的z：0.597
         */
-        this.water = new AR.Model("assets/augmented/cookedMeat.wt3",{
+        this.water = new AR.Model("assets/augmented/water.wt3",{
              scale: {
-                 x: cookedMeatScale,
-                 y: cookedMeatScale,
-                 z: cookedMeatScale
+                 x: waterScale,
+                 y: waterScale,
+                 z: waterScale
              },
              translate: {
                  x: -0.276,
-                 y: 0.902,
+                 y: 1.052,
                  z: -0.25
              },
              rotate: {
@@ -530,7 +537,6 @@ var World = {
              onError: World.onError
          });
          World.drawables.push(this.water);//7
-
     },
 
     //点击小精灵时需要进行的操作
