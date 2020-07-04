@@ -1,7 +1,7 @@
 # MuseumAR
 
-本项目是一个基于AR的博物馆信息展示应用，主要依赖于wikitude库实现AR效果。</br>
-当前版本运行截图见screenshots文件夹。</br>
+本项目是一个基于AR的博物馆信息展示应用，主要依赖于wikitude库实现AR效果。<br/>
+当前版本运行截图见screenshots文件夹。<br/>
 * 欢迎界面、主界面<br/>
 <img src="screenshots/welcome.jpg" width="200" height="444"/> <img src="screenshots/home.jpg" width="200" height="444"/>
 
