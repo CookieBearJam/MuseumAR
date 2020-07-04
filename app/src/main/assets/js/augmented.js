@@ -138,7 +138,7 @@ var World = {
 
 
         //然后放柴火烧水
-        this.woodAdudio = new AR.Sound("assets/audio/dy-3.mp3", {
+        this.woodAdudio = new AR.Sound("assets/audio/dy-2.mp3", {
            onError: World.onError
         });
         this.woodAdudio.load();
@@ -149,7 +149,7 @@ var World = {
 
 
         //加入生肉，浮沉烹煮
-        this.meatAdudio = new AR.Sound("assets/audio/dy-2.mp3", {
+        this.meatAdudio = new AR.Sound("assets/audio/dy-3.mp3", {
             onError: World.onError
         });
         this.meatAdudio.load();
@@ -443,13 +443,16 @@ var World = {
 
         this.elf = new AR.AnimatedImageDrawable(this.imgElf, 0.5, 260, 310, {//height,frame_width,frame_height
             translate: {
-               x: 0.738,
-               y: 1.9,
-               z: 0.042
+//               x: 0.738,
+//               y: 1.9,
+//               z: 0.042
+                x: -1.187,
+                y: 2.09,
+                z: 0.042
             },
             rotates: {
-                x: 0,
-                y: -180,
+                x: 10,
+                y: 180,
                 z: 0
             },
             onClick: function() {
